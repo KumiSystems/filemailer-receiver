@@ -1,9 +1,10 @@
 from configparser import ConfigParser
 from socket import gethostname
 from pathlib import Path
+from hmac import compare_digest
 
-from argon2 import PasswordHasher
-from argon2.exceptions import InvalidHash
+import crypt
+import re
 
 
 class Config:
@@ -15,25 +16,17 @@ class Config:
         self.hash_passwords()
 
     def hash_passwords(self):
-        hasher = PasswordHasher()
-
         for user, password in self.config.items("USERS"):
-            try:
-                hasher.check_needs_rehash(password)
-            except InvalidHash:
-                self.config["USERS"][user] = hasher.hash(password)
+            if not re.match(r"\$\d\$", string):
+                self.config["USERS"][user] = crypt.crypt(
+                    password, crypt.mksalt())
 
         with open(self.path, "w") as configfile:
             self.config.write(configfile)
 
     def verify_password(self, user, password):
-        hasher = PasswordHasher()
-
-        try:
-            hasher.verify(self.config["USERS"][user], password)
-            return True
-        except:
-            return False
+        hashed = self.config["USERS"][user]
+        return compare_digest(hashed, crypt.crypt(password, hashed))
 
     @property
     def hostname(self):
