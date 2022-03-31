@@ -17,7 +17,7 @@ class Config:
 
     def hash_passwords(self):
         for user, password in self.config.items("USERS"):
-            if not re.match(r"\$\d\$", string):
+            if not re.match(r"\$\d\$", password):
                 self.config["USERS"][user] = crypt.crypt(
                     password, crypt.mksalt())
 
