@@ -3,3 +3,6 @@ venv/
 __pycache__/
 maildir/
 *.pem
+build/
+dist/
+*.spec
